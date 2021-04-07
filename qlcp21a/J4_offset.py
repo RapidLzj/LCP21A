@@ -168,4 +168,4 @@ def _offset_(ini, basef, catf, base_img_id, base_cat_file, out_offset_file, lf):
                 xy_off[4, f], xy_off[5, f],
                 jd[f],
             ))
-    lf.show("Report save to {}".format(out_offset_file), logfile.DEBUG)
+    lf.show("Report save to {}".format(out_offset_file), logfile.INFO)

@@ -80,13 +80,10 @@ def _imgproc_(ini, lst, bias_fits, flat_fits, scif, skiptag, extra_hdr, lf):
         # add extra fields to header
         hdr.update(hdr_ex2)
 
-        # cut border
-        bbc = ini["bf_border_cut"]
-        if bbc > 0:
-            dat = dat[bbc:-bbc, bbc:-bbc]
-
         # save new fits
         new_hdu = fits.PrimaryHDU(header=hdr, data=dat)
         new_fits = fits.HDUList([new_hdu])
         new_fits.writeto(scif[f], overwrite=True)
         lf.show("Writing {:03d}/{:03d}: {:40s}".format(f + 1, nf, scif[f]), logfile.DEBUG)
+
+    lf.show("{} of {} files corrected".format(nf-sum(skiptag), nf), logfile.INFO)

@@ -79,7 +79,7 @@ def do_all(ini_file, raw_dir, lst_dir, red_dir,
     """
     # do all steps one by one, if the step char in the parameters
 
-    if red_dir.endswith("/"):
+    if not red_dir.endswith("/"):
         red_dir = red_dir + "/"
     os.makedirs(red_dir, exist_ok=True)
 

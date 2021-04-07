@@ -45,7 +45,7 @@ def _phot_(ini, scif, sef, catf, skiptag, lf):
     # load images and process
     for f in range(nf):
         if skiptag[f]:
-            lf.show("SKIP: \"" + catf[f] + "\"" )
+            lf.show("SKIP: \"" + catf[f] + "\"", logfile.DEBUG)
             continue
         lf.show("SE on {:03d}/{:03d}: {:40s}".format(f + 1, nf, scif[f]), logfile.DEBUG)
 
@@ -90,3 +90,5 @@ def _phot_(ini, scif, sef, catf, skiptag, lf):
         new_fits = fits.HDUList([pri_hdu, tb_hdu])
         new_fits.writeto(catf[f], overwrite=True)
         lf.show("SE result transfer to {}".format(catf[f]), logfile.DEBUG)
+
+    lf.show("Photometry on {} of {} files".format(nf - sum(skiptag), nf), logfile.INFO)

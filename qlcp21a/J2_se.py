@@ -79,8 +79,14 @@ def _se_(ini, scif, sef, catf, skiptag, lf):
         mycat["Alpha"] = secat[ini["se_ra"]]
         mycat["Delta"] = secat[ini["se_de"]]
 
-        pri_hdu = fits.PrimaryHDU()
+        hdr = fits.getheader(scif[f])
+        hdr["IMNAXIS1"] = hdr["NAXIS1"]
+        hdr["IMNAXIS2"] = hdr["NAXIS2"]
+
+        pri_hdu = fits.PrimaryHDU(header=hdr)
         tb_hdu = fits.BinTableHDU(data=mycat)
         new_fits = fits.HDUList([pri_hdu, tb_hdu])
         new_fits.writeto(catf[f], overwrite=True)
         lf.show("SE result transfer to {}".format(catf[f]), logfile.DEBUG)
+
+    lf.show("Photometry on {} of {} files".format(nf - sum(skiptag), nf), logfile.INFO)
