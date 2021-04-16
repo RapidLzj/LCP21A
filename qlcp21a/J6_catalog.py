@@ -17,18 +17,21 @@ from .JZ_cata import match
 from .JZ_plotting import plot_im_obj
 
 
-def _catalog_(ini, scif, catf, offset_file, starxy, ct_coord, base_img_id, base_fits_file,
-              out_cat_fits, out_cat_table_txt, out_cat_list_txt, out_finding_img, lf):
+def _catalog_(ini, scif, catf, offset_file, starxy,
+              # obj_coord,
+              base_img_id, base_fits_file,
+              out_cat_fits, out_cat_table_txt, out_cat_list_txt, out_finding_img, noplot, lf):
 
+    # 210415, move to imgproc
     # observatoey and object info, this is used in transfer JD to HJD
-    site = coord.EarthLocation(lat=ini["site_lat"] * u.deg, lon=ini["site_lon"] * u.deg, height=ini["site_ele"] * u.m)
-    ct_ra = sex2dec(ct_coord[0], 15.0) if ct_coord else None
-    ct_dec = sex2dec(ct_coord[1]) if ct_coord else None
-    if ct_coord:
-        obj = coord.SkyCoord(ct_ra, ct_dec, unit=(u.deg, u.deg), frame="icrs")
-    else:
-        # if none, no jd-bjd transfer
-        obj = None
+    # site = coord.EarthLocation(lat=ini["site_lat"] * u.deg, lon=ini["site_lon"] * u.deg, height=ini["site_ele"] * u.m)
+    # ct_ra = sex2dec(obj_coord[0], 15.0) if obj_coord else None
+    # ct_dec = sex2dec(obj_coord[1]) if obj_coord else None
+    # if obj_coord:
+    #     obj = coord.SkyCoord(ct_ra, ct_dec, unit=(u.deg, u.deg), frame="icrs")
+    # else:
+    #     # if none, no jd-bjd transfer
+    #     obj = None
 
     nf = len(catf)
     lf.show("{:03d} files".format(nf), logfile.DEBUG)
@@ -52,8 +55,10 @@ def _catalog_(ini, scif, catf, offset_file, starxy, ct_coord, base_img_id, base_
     band = np.empty(nf, (str, 10))
     expt = np.empty(nf, float)
     obs_dt = np.empty(nf, (str, 22))
-    obs_jd = np.empty(nf, object)  # type=time.Time
-    obs_bjd = np.zeros(nf, float)  # transfer result
+    obs_jd = np.empty(nf, float)  # from header
+    # obs_jd = np.empty(nf, object)  # type=time.Time
+    obs_bjd = np.zeros(nf, float)  # from header // transfer result
+    obs_hjd = np.zeros(nf, float)  # from header
 
     # array of stars
     all_id   = np.zeros((nf, ns), int) -1
@@ -66,19 +71,21 @@ def _catalog_(ini, scif, catf, offset_file, starxy, ct_coord, base_img_id, base_
 
     # load stars from images into the array, by matching x,y
     for k in range(nf):
-        d_str = fits.getval(scif[k], ini["date_key"])[ini["date_start"]:ini["date_end"]]
-        t_str = fits.getval(scif[k], ini["time_key"])[ini["time_start"]:ini["time_end"]]
-        band[k] = fits.getval(scif[k], "FILTER")
-        expt[k] = fits.getval(scif[k], "EXPTIME")
+        hdr = fits.getheader(catf[k])
+        d_str = hdr[ini["date_key"]][ini["date_start"]:ini["date_end"]]
+        t_str = hdr[ini["time_key"]][ini["time_start"]:ini["time_end"]]
         obs_dt[k] = d_str + "T" + t_str
-        t = obs_jd[k] = time.Time(obs_dt[k], format='isot', scale='utc', location=site)
-        if obj is not None:
-            ltt_bary = t.light_travel_time(obj)
-            obs_bjd[k] = (t.tdb + ltt_bary).jd
+        band[k] = hdr["FILTER"]
+        expt[k] = hdr["EXPTIME"]
+        # t = obs_jd[k] = time.Time(obs_dt[k], format='isot', scale='utc', location=site)
+        # if obj is not None:
+        #     ltt_bary = t.light_travel_time(obj)
+        #     obs_bjd[k] = (t.tdb + ltt_bary).jd
+        obs_jd[k] = hdr["JD"]
+        obs_bjd[k] = hdr["BJD"]
+        obs_hjd[k] = hdr["HJD"]
 
         cat_k = fits.getdata(catf[k])
-        # x_k = cat_k[ini["se_x"]] + offset[k]["X_Med"] - x_base
-        # y_k = cat_k[ini["se_y"]] + offset[k]["Y_Med"] - y_base
         x_k = cat_k["X"] + offset[k]["X_Med"] - x_base
         y_k = cat_k["Y"] + offset[k]["Y_Med"] - y_base
         ix_s, ix_k, dd = match(starx, stary, None, x_k, y_k, None, ini["cali_dis_limit"], None, multi=True)
@@ -100,6 +107,7 @@ def _catalog_(ini, scif, catf, offset_file, starxy, ct_coord, base_img_id, base_
         ("DT",    (str, 22),),
         ("JD",    np.float64),
         ("BJD",   np.float64),
+        ("HJD",   np.float64),
         ("X",     np.float64, (ns,)),
         ("Y",     np.float64, (ns,)),
         ("Mag",   np.float32, (ns,)),
@@ -113,8 +121,9 @@ def _catalog_(ini, scif, catf, offset_file, starxy, ct_coord, base_img_id, base_
     cat_final["Band"]  = band
     cat_final["Expt"]  = expt
     cat_final["DT"]    = obs_dt
-    cat_final["JD"]    = [k.jd for k in obs_jd]
+    cat_final["JD"]    = obs_jd
     cat_final["BJD"]   = obs_bjd
+    cat_final["HJD"]   = obs_hjd
     cat_final["Mag"]   = all_mag
     cat_final["Err"]   = all_err
     cat_final["X"]     = all_x
@@ -169,7 +178,8 @@ def _catalog_(ini, scif, catf, offset_file, starxy, ct_coord, base_img_id, base_
     base_fits_file = base_fits_file if base_img_id < 0 else scif[base_img_id]
     if os.path.isfile(base_fits_file):
         img = fits.getdata(base_fits_file)
-        plot_im_obj(ini, img, starx, stary, scif[base_img_id], out_finding_img)
+        imtitle = os.path.basename(base_fits_file)
+        plot_im_obj(ini, img, starx, stary, imtitle, out_finding_img, noplot=noplot)
         lf.show("Finding Chart save to {}".format(out_finding_img), logfile.INFO)
     else:
         lf.show("Finding Chart NOT plotted due to missing {}".format(base_fits_file), logfile.INFO)

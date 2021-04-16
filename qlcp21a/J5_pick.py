@@ -48,6 +48,9 @@ def _pick_(ini, catf, offset_file, base_img_id, base_cat_file, out_pick_txt, lf)
 
     # load base catalog
     cat_b = fits.getdata(base_cat_file)
+    nx = fits.getval(base_cat_file, "IMNAXIS1")
+    ny = fits.getval(base_cat_file, "IMNAXIS2")
+    border_cut = ini["border_cut"]
     gix = np.argsort(cat_b["Err"])[:pick_star]
     gix = gix[cat_b[gix]["Err"] < pick_err]
     ng = len(gix)  # number of good stars
@@ -83,6 +86,7 @@ def _pick_(ini, catf, offset_file, base_img_id, base_cat_file, out_pick_txt, lf)
 
     pick_var_std = ini["pick_var_std"]
     pick_var_dif = ini["pick_var_dif"]
+    pick_var_rad = ini["pick_var_rad"]
     pick_ref_std = ini["pick_ref_std"]
     pick_ref_dif = ini["pick_ref_dif"]
     pick_ref_n   = ini["pick_ref_n"]
@@ -90,18 +94,25 @@ def _pick_(ini, catf, offset_file, base_img_id, base_cat_file, out_pick_txt, lf)
     # calc std of all stars, and then find the good enough stars
     magstd = np.std(magc, axis=0)  # std of each star between all images
     magdif = np.max(magc, axis=0) - np.min(magc, axis=0)  # diff between min and max of each star
-    # pick best stars, by a error limit or a number limit or both
-    ix_var = np.where((magstd > pick_var_std) & (magdif > pick_var_dif))[0]
+
+    # pick variable stars, by mag std, and distance to center
+    ix_var = np.where((magstd > pick_var_std) & (magdif > pick_var_dif)
+                      & (np.abs(x_b - nx / 2) < nx * pick_var_rad)
+                      & (np.abs(y_b - ny / 2) < ny * pick_var_rad)
+                      )[0]
+
+    # pick reference stars, by a error limit or a number limit or both
     ix_ref = np.where((magstd < pick_ref_std) & (magdif < pick_ref_dif))[0]
     ix_ref = ix_ref[np.argsort(magstd[ix_ref])][:pick_ref_n]
+
     lf.show("Pick {:3d} ref stars and {:3d} var stars".format(
         len(ix_ref), len(ix_var)), logfile.INFO)
 
     for i, k in enumerate(ix_var):
-        lf.show("  VAR {i:2d}: [{k:3d}] ({x:6.1f} {y:6.1f})  {m:5.2f}+-{e:5.2f}".format(
+        lf.show("  VAR {i:2d}: [{k:3d}] ({x:6.1f} {y:6.1f})  {m:5.2f}+-{e:5.3f}".format(
             i=i, k=k, x=x_b[k], y=y_b[k], m=m_b[k], e=e_b[k], ), logfile.INFO)
     for i, k in enumerate(ix_ref):
-        lf.show("  REF {i:2d}: [{k:3d}] ({x:6.1f} {y:6.1f})  {m:5.2f}+-{e:5.2f}".format(
+        lf.show("  REF {i:2d}: [{k:3d}] ({x:6.1f} {y:6.1f})  {m:5.2f}+-{e:5.3f}".format(
             i=i, k=k, x=x_b[k], y=y_b[k], m=m_b[k], e=e_b[k], ), logfile.INFO)
 
     xy_ref = [(x_b[k], y_b[k]) for k in ix_ref]

@@ -29,9 +29,6 @@ def _offset_(ini, basef, catf, base_img_id, base_cat_file, out_offset_file, lf):
     """
 
     nf = len(catf)
-    nx = fits.getval(catf[0], "IMNAXIS1")
-    ny = fits.getval(catf[0], "IMNAXIS2")
-    border_cut = ini["border_cut"]
     lf.show("{:03d} files".format(nf), logfile.DEBUG)
 
     # prepare an empty catalog cube
@@ -48,6 +45,11 @@ def _offset_(ini, basef, catf, base_img_id, base_cat_file, out_offset_file, lf):
         raise FileExistsError("Base catalog {} NOT exists".format(base_cat_file))
 
     cat_base = fits.getdata(base_cat_file)
+    # nx = fits.getval(catf[0], "IMNAXIS1")
+    # ny = fits.getval(catf[0], "IMNAXIS2")
+    nx = fits.getval(base_cat_file, "IMNAXIS1")
+    ny = fits.getval(base_cat_file, "IMNAXIS2")
+    border_cut = ini["border_cut"]
     # 190609 remove border stars
     x_base = cat_base["X"]  # [ini["se_x"]]
     y_base = cat_base["Y"]  # [ini["se_y"]]
@@ -77,7 +79,8 @@ def _offset_(ini, basef, catf, base_img_id, base_cat_file, out_offset_file, lf):
 
     # load images and process
     for f in range(nf):
-        jd[f] = hdr_dt_jd(fits.getheader(catf[f]), ini) - 2458000.0
+        # jd[f] = hdr_dt_jd(fits.getheader(catf[f]), ini) - 2458000.0
+        jd[f] = fits.getval(catf[f], "MJD") - 58000
         if f != base_img_id:
             # load n_th catalog
             cat_k = fits.getdata(catf[f])
@@ -158,7 +161,7 @@ def _offset_(ini, basef, catf, base_img_id, base_cat_file, out_offset_file, lf):
 
     with open(out_offset_file, "w") as ff:
         ff.write("{:3} {:20} {:4} {:2} {:8} {:7}  {:8} {:7}  {:7} {:7}  {:10}\n".format(
-            "No", "Filename", "Cnt", "It", "X_Med", "X_Std", "Y_Med", "Y_Std", "Mag_Med", "Mag_Std", "T_JD"
+            "No", "Filename", "Cnt", "It", "X_Med", "X_Std", "Y_Med", "Y_Std", "Mag_Med", "Mag_Std", "MJD"
         ))
         for f in range(nf):
             ff.write("{:3d} {:20s} {:4d} {:2d} {:+8.3f} {:7.4f}  {:+8.3f} {:7.4f}  {:+7.3f} {:7.4f}  {:10.6f}\n".format(

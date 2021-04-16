@@ -93,7 +93,7 @@ def _curve_(ini_file, cali_fits, fig_set, noplot, out_lc_png, lf):
     ax.set_title("Light-Curve: " + ti)
 
     if out_lc_png:
-        fig.savefig(out_lc_png)
+        fig.savefig(out_lc_png, bbox_inches='tight')
         lf.show("Light-Curve save to {}".format(out_lc_png), logfile.INFO)
 
     if noplot:

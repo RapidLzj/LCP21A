@@ -304,8 +304,9 @@ def hdr_dt_jd(hdr, ini):
     if d_str[2] == "/" and d_str[5] == "/":
         d_str = "20" + d_str[6:8] + "-" + d_str[3:5] + "-" + d_str[0:2]
     t_str = hdr[ini["time_key"]][ini["time_start"]:ini["time_end"]]
-    dt = Time(d_str + "T" + t_str, format='isot', scale='utc')
-    return dt.jd
+    dt_str = d_str + "T" + t_str
+    dt_jd = Time(dt_str, format='isot', scale='utc')
+    return dt_str, dt_jd
 
 
 def basefilename(fullname):
@@ -343,7 +344,7 @@ def subset(ixall, matched):
 def sex2dec(s, fac=1.0):
     """
     将六十进制表达的数值转换成十进制表达（hms不负责乘15）
-    :param s: 字符串形式，可以是空格分隔或者冒号分隔，如果已经是数字则不转换
+    :param s: 字符串形式，可以是空格分隔或者冒号分隔，如果不是字符串不转换，包括None
     :param fac: 倍率，如果是字符串转浮点数，需要乘倍率
     :return:
     """
@@ -354,3 +355,110 @@ def sex2dec(s, fac=1.0):
         d = float(s1[0]) + float(s1[1]) / 60.0 + float(s1[2]) / 3600.0
         d *= fac
     return d
+
+
+# functions from survey codes
+def lst (mjd, lon) :
+    """ get local sidereal time for longitude at mjd, no astropy
+    args:
+        mjd: mjd
+        lon: longitude, in degrees
+    returns:
+        lst: in hours
+    """
+    mjd0 = np.floor(mjd)
+    ut = (mjd - mjd0) * 24.0
+    t_eph = (mjd0 - 51544.5) / 36525.0
+    return (6.697374558 + 1.0027379093 * ut +
+            (8640184.812866 + (0.093104 - 0.0000062 * t_eph) * t_eph) * t_eph / 3600.0 +
+            lon / 15.0) % 24.0
+
+
+def hourangle (lst, ra) :
+    """ Calculate hourangle of specified ra, -12 to +12
+    args:
+        lst: local sidereal time, in hours
+        ra: ra of object, in degrees
+    returns:
+        hourangle, in hours, -12 to +12
+    """
+    return (lst - ra / 15.0 + 12.0) % 24.0 - 12.0
+
+
+def airmass (lat, lst, ra, dec) :
+    """ Calculate airmass
+        Use simplified formula from old obs4, unknown source
+    args:
+        lat: latitude of site, in degrees
+        lst: local sidereal time, in hours
+        ra: ra of target, in degrees, scrlar or ndarray
+        dec: dec of target, same shape as ra
+    returns:
+        airmass, same shape as ra/dec
+    """
+    lat = np.deg2rad(lat)
+    lst = np.deg2rad(lst * 15.0)
+    ra  = np.deg2rad(ra)
+    dec = np.deg2rad(dec)
+
+    x1 = np.sin(lat) * np.sin(dec)
+    x2 = np.cos(lat) * np.cos(dec)
+    ha = lst - ra
+    x = 1.0 / (x1 + x2 * np.cos(ha))
+    if type(x) == np.ndarray :
+        x[np.where((x < 0.0) | (x > 9.99))] = 9.99
+    else :
+        if (x < 0.0) or (x > 9.99) :
+            x = 9.99
+    return x
+
+
+def azalt (lat, lst, ra, dec) :
+    """ Convert RA/Dec of object to Az&Alt
+        Use formular from hadec2altaz of astron of IDL
+    args:
+        lat: latitude of site, in degrees
+        lst: local sidereal time, in hours
+        ra: ra of target, in degrees, scrlar or ndarray
+        dec: dec of target, same shape as ra
+    returns:
+        az, alt
+    """
+    lat = np.deg2rad(lat)
+    lst = np.deg2rad(lst * 15.0)
+    ra  = np.deg2rad(ra)
+    dec = np.deg2rad(dec)
+    ha = lst - ra
+
+    sh = np.sin(ha)
+    ch = np.cos(ha)
+    sd = np.sin(dec)
+    cd = np.cos(dec)
+    sl = np.sin(lat)
+    cl = np.cos(lat)
+
+    x = - ch * cd * sl + sd * cl
+    y = - sh * cd
+    z = ch * cd * cl + sd * sl
+    r = np.sqrt(x * x + y * y)
+
+    az  = np.rad2deg(np.arctan2(y, x)) % 360.0
+    alt = np.rad2deg(np.arctan2(z, r))
+
+    return az, alt
+
+
+def ra2hms(x):
+    """
+    from coord.ra to hms format
+    """
+    xx = x.hms
+    return "{h:02d}:{m:02d}:{s:05.2f}".format(h=int(xx.h), m=int(xx.m), s=xx.s)
+
+
+def dec2dms(x):
+    """
+    from coord.dec to signed dms format
+    """
+    xx = x.signed_dms
+    return "{p:1s}{d:02d}:{m:02d}:{s:04.1f}".format(p="+" if xx.sign>0 else "-", d=int(xx.d), m=int(xx.m), s=xx.s)

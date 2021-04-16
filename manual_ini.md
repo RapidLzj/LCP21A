@@ -1,6 +1,6 @@
-<link rel="stylesheet" type="text/css" href="../../auto-number-title.css" />
+<link rel="stylesheet" type="text/css" href="../auto-number-title.css" />
 
-# LCP-2021A 使用手册-附录B：配置项目说明
+# LCP-2021A 使用手册-附录
 
 | 版本 | 作者 | 说明 |
 |----|----|----|
@@ -8,7 +8,7 @@
 
 [toc]
 
-## 附录B：配置项目说明
+## 附录C：配置项目说明
 
 配置文件中的信息，用于控制程序运行。通常适用于所有数据处理过程。以下分类介绍参数。
 
@@ -46,7 +46,6 @@ filename_flat_lst      = "flat_{band}.lst"
 filename_file_lst      = "{obj}_{band}.lst"
 filename_bias_fit      = "bias.fits"
 filename_flat_fit      = "flat_{band}.fits"
-filename_imgproc_log   = "imgproc_{obj}_{band}.log"
 filename_wcs_txt       = "wcs_{obj}_{band}.fits"
 filename_offset_txt    = "offset_{obj}_{band}.txt"
 filename_pick_txt      = "pick_{obj}_{band}.txt"
@@ -59,6 +58,7 @@ filename_cali_txt      = "cali_{obj}_{band}.txt"
 filename_lc_png        = "lc_{obj}_{band}.png"
 filename_bias_log      = "log/bias.log"
 filename_flat_log      = "log/flat_{band}.log"
+filename_imgproc_log   = "log/imgproc_{obj}_{band}.log"
 filename_phot_log      = "log/phot_{obj}_{band}.log"
 filename_wcs_log       = "log/wcs_{obj}_{band}.log"
 filename_offset_log    = "log/offset_{obj}_{band}.log"
@@ -93,7 +93,7 @@ bf_border_cut = 0
 
 ```
 se_cmd = "sex"          # source extractor在mac下的名称
-                        # 在Linux一般为sextractor
+        # 在Linux一般为sextractor或者source-extractor
 se_x   = "x_image_dbl"  # SE输出的x坐标所用的列名称
 se_y   = "y_image_dbl"  # 同上
 se_ra  = "alpha_j2000"  # SE输出的ra坐标所用的列名称
@@ -178,6 +178,15 @@ date_end   = 10            # 结束字符
 time_key   = "DATE-OBS"    # 观测时间头文件关键字
 time_start = 11            # 开始字符
 time_end   = 19            # 结束字符
+```
+
+### fits头中目标坐标字段
+
+本节用于指定fits头中的赤经赤纬字段名称，不同望远镜输出可能不一样。注意如果文件头中没有该项目，或者填写的数据是假数据，需要在调用时通过`obj_coord`参数指定真实值。另外，此处赤经赤纬应为六十进制的时分秒和度分秒。
+
+```
+hdr_obj_ra  = "RA"    # key of RA in header
+hdr_obj_dec = "DEC"   # key of Dec in header
 ```
 
 ### 自动识别文件名模板

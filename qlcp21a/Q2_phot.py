@@ -42,6 +42,8 @@ def phot(ini_file, file_lst,
                     separate_folder = ini["separate_folder"])
     catf = loadlist(file_lst, suffix=ini["cat_mid"]+".fits", base_path=red_path,
                     separate_folder=ini["separate_folder"])
+    txtf = loadlist(file_lst, suffix=ini["cat_mid"]+".txt", base_path=red_path,
+                    separate_folder=ini["separate_folder"])
     sef = loadlist(file_lst, suffix=ini["se_mid"]+".fits", base_path=red_path,
                     separate_folder=ini["separate_folder"])
 
@@ -52,6 +54,6 @@ def phot(ini_file, file_lst,
     else:
         skiptag = [False for f in catf]
 
-    _se_(ini, scif, sef, catf, skiptag, lf)
+    _se_(ini, scif, sef, catf, txtf, skiptag, lf)
 
     lf.close()

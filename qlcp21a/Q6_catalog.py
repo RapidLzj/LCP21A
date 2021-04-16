@@ -25,10 +25,11 @@ def catalog(ini_file, file_lst,
             out_cat_table_txt,
             out_cat_list_txt,
             out_finding_img,
-            ct_coord=None,
+            # obj_coord=None,
             base_img_id=0,
             base_fits_file=None,
             red_path="",
+            noplot=False,
             overwrite=False,
             log=None,
             extra_config=None):
@@ -42,10 +43,11 @@ def catalog(ini_file, file_lst,
     :param out_cat_table_txt: output file of text table (one row for one image, different stars on different columns)
     :param out_cat_list_txt: output file of text list (one row for one star, multiple rows for one image)
     :param out_finding_img: output file of finding chart
-    :param ct_coord: ra/dec of image center, if None, then no jd->bjd, bjd=0
+    :param obj_coord: ra/dec of image center, if None, then no jd->bjd, bjd=0
     :param base_img_id:
     :param base_fits_file: template image file, if base id == -1, this must be provided
     :param red_path:
+    :param noplot:
     :param overwrite:
     :param log:
     :param extra_config:
@@ -70,7 +72,9 @@ def catalog(ini_file, file_lst,
     catf = loadlist(file_lst, suffix=ini["cat_mid"]+".fits", base_path=red_path,
                     separate_folder=ini["separate_folder"])
 
-    _catalog_(ini, scif, catf, offset_file, starxy, ct_coord, base_img_id, base_fits_file,
-              out_cat_fits, out_cat_table_txt, out_cat_list_txt, out_finding_img, lf)
+    _catalog_(ini, scif, catf, offset_file, starxy,
+              # obj_coord,
+              base_img_id, base_fits_file,
+              out_cat_fits, out_cat_table_txt, out_cat_list_txt, out_finding_img, noplot, lf)
 
     lf.close()

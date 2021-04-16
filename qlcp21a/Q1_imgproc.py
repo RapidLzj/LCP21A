@@ -15,6 +15,7 @@ from .J1_imgproc import _imgproc_
 
 
 def imgproc(ini_file, file_lst, bias_fits, flat_fits,
+            obj_coord=None,
             raw_path="", red_path="",
             extra_hdr=None,
             overwrite=False,
@@ -26,6 +27,7 @@ def imgproc(ini_file, file_lst, bias_fits, flat_fits,
     :param file_lst: list file of scientific fits files
     :param bias_fits: merged flat fits files
     :param flat_fits: merged flat fits files
+    :param obj_coord:
     :param raw_path: base path add to list
     :param red_path: path of out files, if provided, use this path
     :param extra_hdr: extra header, a dict
@@ -51,6 +53,6 @@ def imgproc(ini_file, file_lst, bias_fits, flat_fits,
     else:
         skiptag = [False for f in scif]
 
-    _imgproc_(ini, lst, bias_fits, flat_fits, scif, skiptag, extra_hdr, lf)
+    _imgproc_(ini, lst, bias_fits, flat_fits, scif, obj_coord, skiptag, extra_hdr, lf)
 
     lf.close()

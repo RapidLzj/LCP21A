@@ -49,7 +49,7 @@ def plot_im_star(ini, img, x, y, mag, err, title, filename):
 
     ax.set_title(title)
 
-    fig.savefig(filename)
+    fig.savefig(filename, bbox_inches='tight')
     plt.close()
 
 
@@ -87,6 +87,7 @@ def plot_im_target(ini, img,
                    target_marker=("s", "r"),
                    ref_marker=("s", "y"),
                    chk_marker=("o", "y"),
+                   noplot=False,
                    ):
     """
     Plot image and mark target, referenece, and check stars
@@ -103,12 +104,15 @@ def plot_im_target(ini, img,
     :param target_marker: 2-tuple for marker, marker type and border color
     :param ref_marker:
     :param chk_marker:
+    :param noplot:
     :return:
     """
 
     ny, nx = img.shape
-    fig = plt.figure(figsize=(nx / 50.0, ny / 50.0))
+    fig = plt.figure(figsize=(nx / 100.0, ny / 100.0))
     ax = fig.add_subplot(111)
+    fsize = nx / 100  # font size
+    msize = fsize * 5   # marker size
 
     d_m, d_s = meanclip(img)
     ax.imshow(img, cmap="gray",
@@ -118,36 +122,41 @@ def plot_im_target(ini, img,
     ax.set_ylim(0, ny)
 
     if target_x is not None:
-        ax.scatter(target_x, target_y, marker=target_marker[0], s=50.0, c="", edgecolors=target_marker[1])
+        ax.scatter(target_x, target_y, marker=target_marker[0], s=msize, c="", edgecolors=target_marker[1])
         if np.isscalar(target_x): target_x = (target_x, )
         if np.isscalar(target_y): target_y = (target_y, )
         for i in range(len(target_x)):
-            ax.text(target_x[i]+10, target_y[i]+10, "T-{}".format(i), color=target_marker[1], fontsize=20)
+            ax.text(target_x[i]+fsize/2, target_y[i]+fsize/2, "T-{}".format(i),
+                    color=target_marker[1], fontsize=fsize)
 
     if ref_x is not None:
-        ax.scatter(ref_x, ref_y, marker=ref_marker[0], s=50.0, c="", edgecolors=ref_marker[1])
+        ax.scatter(ref_x, ref_y, marker=ref_marker[0], s=msize, c="", edgecolors=ref_marker[1])
         if np.isscalar(ref_x): ref_x = (ref_x, )
         if np.isscalar(ref_y): ref_y = (ref_y, )
         for i in range(len(ref_x)):
-            ax.text(ref_x[i]+10, ref_y[i]+10, "R-{}".format(i), color=ref_marker[1], fontsize=20)
+            ax.text(ref_x[i]+fsize/2, ref_y[i]+fsize/2, "R-{}".format(i),
+                    color=ref_marker[1], fontsize=fsize)
 
     if chk_x is not None:
-        ax.scatter(chk_x, chk_y, marker=chk_marker[0], s=50.0, c="", edgecolors=chk_marker[1])
+        ax.scatter(chk_x, chk_y, marker=chk_marker[0], s=msize, c="", edgecolors=chk_marker[1])
         if np.isscalar(chk_x): chk_x = (chk_x, )
         if np.isscalar(chk_y): chk_y = (chk_y, )
         for i in range(len(chk_x)):
-            ax.text(chk_x[i]+10, chk_y[i]+10, "C-{}".format(i), color=chk_marker[1], fontsize=20)
+            ax.text(chk_x[i]+fsize/2, chk_y[i]+fsize/2, "C-{}".format(i),
+                    color=chk_marker[1], fontsize=fsize)
 
     ax.set_title(title)
 
-    fig.savefig(filename)
-    plt.close()
+    fig.savefig(filename, bbox_inches='tight')
+    if noplot:
+        plt.close(fig)
 
 
 def plot_im_obj(ini, img,
                 obj_x, obj_y,
                 title, filename,
                 target_marker=("s", "r"),
+                noplot=False,
                 ):
     """
     Plot only objects, without using ref or check
@@ -158,9 +167,12 @@ def plot_im_obj(ini, img,
     :param title:
     :param filename:
     :param target_marker:
+    :param noplot:
     :return:
     """
     plot_im_target(ini, img, obj_x, obj_y,
                    None, None, None, None,
                    title, filename,
-                   target_marker)
+                   target_marker,
+                   noplot=noplot,
+    )

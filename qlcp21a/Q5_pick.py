@@ -42,13 +42,13 @@ def pick(ini_file, file_lst,
     ini = conf(ini_file, extra_config)
     lf = logfile(log, level=ini["log_level"])
 
-    if os.path.isfile(out_pick_txt) and not overwrite:
-        lf.show("SKIP: " + out_pick_txt + "")
-        return
+    # if os.path.isfile(out_pick_txt) and not overwrite:
+    #     lf.show("SKIP: " + out_pick_txt + "")
+    #     return [], []
 
     if not os.path.isfile(file_lst):
         lf.show("SKIP -- FILE NOT EXISTS: " + file_lst, logfile.ERROR)
-        return
+        return [], []
 
     # load list
     catf = loadlist(file_lst, suffix=ini["cat_mid"] + ".fits", base_path=red_path,

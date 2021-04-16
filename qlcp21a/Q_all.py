@@ -29,7 +29,7 @@ def do_all(ini_file, raw_dir, lst_dir, red_dir,
            base_cat_file=None,
            base_fits_file=None,
            starxy=None,
-           ct_coord=None,
+           obj_coord=None,
            tgt_id=0,
            ref_id=None,
            chk_id=None,
@@ -55,7 +55,8 @@ def do_all(ini_file, raw_dir, lst_dir, red_dir,
     :param base_cat_file: template catalog file, if base < 0, use this
     :param base_fits_file: template image file, if base id < 0, this must be provided
     :param starxy: a list of [(x1, y1), (x2, y2), ...], if None, no this step
-    :param ct_coord: 2-tuple, RA and Dec of image center or main target, in HMS/DMS or deg
+    :param obj_coord: 2-tuple, RA and Dec of the object, in HMS/DMS or deg,
+        or a dict, the object name as key, 2-tuple of ra/dec as value
     :param tgt_id: parameters used in plotting light-curve
     :param ref_id:
     :param chk_id:
@@ -155,12 +156,17 @@ def do_all(ini_file, raw_dir, lst_dir, red_dir,
 
     for b, o in bandobj:
         # iteration all items
+        if type(obj_coord) is dict:
+            oc = obj_coord[o]
+        else:
+            oc = obj_coord
 
         imgproc(
             ini_file=ini_file,
             file_lst=lst_dir + _filename_("file_lst", obj=o, band=b),
             bias_fits=red_dir + _filename_("bias_fit", obj="bias", band="X"),
             flat_fits=red_dir + _filename_("flat_fit", obj="flat", band=b),
+            obj_coord=oc,
             raw_path=raw_dir,
             red_path=red_dir,
             extra_hdr=None,
@@ -182,7 +188,7 @@ def do_all(ini_file, raw_dir, lst_dir, red_dir,
             ini_file = ini_file,
             file_lst = lst_dir + _filename_("file_lst", obj=o, band=b),
             out_wcs_file=red_dir + _filename_("wcs_txt", obj=o, band=b),
-            ct_coord=ct_coord,
+            ct_coord=obj_coord,
             # pixscl=pixscl, #fov=fov,
             # nrefgood=nrefgood,
             red_path = red_dir,
@@ -203,7 +209,7 @@ def do_all(ini_file, raw_dir, lst_dir, red_dir,
             extra_config=extra_config,
         ) if "o" in steps else None
 
-        if "k" in steps or ("c" in steps and (starxy is None or len(starxy) == 1)):
+        if "k" in steps or ("c" in steps and (not starxy or len(starxy) == 1)):
             xy_var, xy_ref = pick(
                 ini_file=ini_file,
                 file_lst=lst_dir + _filename_("file_lst", obj=o, band=b),
@@ -216,12 +222,12 @@ def do_all(ini_file, raw_dir, lst_dir, red_dir,
                 log=red_dir + _filename_("pick_log", obj=o, band=b),
                 extra_config=extra_config,
             )
-            if "k" in steps:
-                return xy_var, xy_ref
-            elif starxy is None:
-                starxy = [xy_var[0]] + xy_ref
+            if not starxy:
+                pick_starxy = [xy_var[0]] + xy_ref
             else:
-                starxy = list(starxy) + xy_ref
+                pick_starxy = list(starxy) + xy_ref
+        else:
+            pick_starxy = starxy
 
         catalog(
             ini_file=ini_file,
@@ -234,9 +240,10 @@ def do_all(ini_file, raw_dir, lst_dir, red_dir,
             base_img_id=base_img_id,
             base_fits_file=base_fits_file,
             red_path=red_dir,
-            starxy=starxy,
-            ct_coord=ct_coord,
+            starxy=pick_starxy,
+            # obj_coord=oc,
             overwrite=overwrite,
+            noplot=noplot,
             log=red_dir + _filename_("cat_log", obj=o, band=b),
             extra_config=extra_config,
         ) if "c" in steps else None

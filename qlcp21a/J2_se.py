@@ -13,7 +13,7 @@ import os
 from .JZ_utils import loadlist, datestr, logfile, conf, meanclip
 
 
-def _se_(ini, scif, sef, catf, skiptag, lf):
+def _se_(ini, scif, sef, catf, txtf, skiptag, lf):
     """
     Photometric working, this function is calling Source-Extractor,
     but other implementation can call pure python solution
@@ -21,6 +21,7 @@ def _se_(ini, scif, sef, catf, skiptag, lf):
     :param scif:
     :param sef:
     :param catf:
+    :param txtf:
     :param skiptag:
     :param lf:
     :return:
@@ -43,7 +44,7 @@ def _se_(ini, scif, sef, catf, skiptag, lf):
     # load images and process
     for f in range(nf):
         if skiptag[f]:
-            lf.show("SKIP: \"" + catf[f] + "\"" )
+            lf.show("SKIP: \"" + catf[f] + "\"", logfile.DEBUG )
             continue
         lf.show("SE on {:03d}/{:03d}: {:40s}".format(f + 1, nf, scif[f]), logfile.DEBUG)
 
@@ -88,5 +89,13 @@ def _se_(ini, scif, sef, catf, skiptag, lf):
         new_fits = fits.HDUList([pri_hdu, tb_hdu])
         new_fits.writeto(catf[f], overwrite=True)
         lf.show("SE result transfer to {}".format(catf[f]), logfile.DEBUG)
+
+        with open(txtf[f], "w") as ff:
+            ff.write("Num   X        Y         Elong FWHM   Mag    Err    Flags             Alpha      Delta\n")
+            for s in mycat:
+                    ff.write("{s[Num]:4d}  {s[X]:8.3f} {s[Y]:8.3f}  {s[Elong]:5.2f} {s[FWHM]:5.2f}  "
+                             "{s[Mag]:6.3f} {s[Err]:6.4f}  {s[Flags]:16b}  {s[Alpha]:10.6f} {s[Delta]:+10.6f}\n".format(
+                            s=s))
+        lf.show("SE result transfer to text: {}".format(txtf[f]), logfile.DEBUG)
 
     lf.show("Photometry on {} of {} files".format(nf - sum(skiptag), nf), logfile.INFO)
