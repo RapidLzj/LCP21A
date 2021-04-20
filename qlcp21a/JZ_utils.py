@@ -244,7 +244,7 @@ class conf(object):
             if not os.path.isfile(fn):
                 continue
             # print("Loading INI: {}".format(fn))
-            lines = open(fn, "r").readlines()
+            lines = open(fn, "r", encoding="utf-8").readlines()
             for l in lines:
                 p1 = l.find("#")
                 # 200102改，增加整行都是注释的处理
