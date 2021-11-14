@@ -122,7 +122,7 @@ def plot_im_target(ini, img,
     ax.set_ylim(0, ny)
 
     if target_x is not None:
-        ax.scatter(target_x, target_y, marker=target_marker[0], s=msize, c="", edgecolors=target_marker[1])
+        ax.scatter(target_x, target_y, marker=target_marker[0], s=msize, c=None, edgecolors=target_marker[1])
         if np.isscalar(target_x): target_x = (target_x, )
         if np.isscalar(target_y): target_y = (target_y, )
         for i in range(len(target_x)):
@@ -130,7 +130,7 @@ def plot_im_target(ini, img,
                     color=target_marker[1], fontsize=fsize)
 
     if ref_x is not None:
-        ax.scatter(ref_x, ref_y, marker=ref_marker[0], s=msize, c="", edgecolors=ref_marker[1])
+        ax.scatter(ref_x, ref_y, marker=ref_marker[0], s=msize, c=None, edgecolors=ref_marker[1])
         if np.isscalar(ref_x): ref_x = (ref_x, )
         if np.isscalar(ref_y): ref_y = (ref_y, )
         for i in range(len(ref_x)):
@@ -138,7 +138,7 @@ def plot_im_target(ini, img,
                     color=ref_marker[1], fontsize=fsize)
 
     if chk_x is not None:
-        ax.scatter(chk_x, chk_y, marker=chk_marker[0], s=msize, c="", edgecolors=chk_marker[1])
+        ax.scatter(chk_x, chk_y, marker=chk_marker[0], s=msize, c=None, edgecolors=chk_marker[1])
         if np.isscalar(chk_x): chk_x = (chk_x, )
         if np.isscalar(chk_y): chk_y = (chk_y, )
         for i in range(len(chk_x)):
