@@ -92,8 +92,9 @@ def _pick_(ini, catf, offset_file, base_img_id, base_cat_file, out_pick_txt, lf)
     pick_ref_n   = ini["pick_ref_n"]
 
     # calc std of all stars, and then find the good enough stars
-    magstd = np.std(magc, axis=0)  # std of each star between all images
-    magdif = np.max(magc, axis=0) - np.min(magc, axis=0)  # diff between min and max of each star
+    magstd = np.nanstd(magc, axis=0)  # std of each star between all images
+    magdif = np.nanmax(magc, axis=0) - np.nanmin(magc, axis=0)  # diff between min and max of each star
+    magbad = np.sum(np.isnan(magc), axis=0) / nf  # percent of bad (nan) of each star
 
     # pick variable stars, by mag std, and distance to center
     ix_var = np.where((magstd > pick_var_std) & (magdif > pick_var_dif)
@@ -102,7 +103,7 @@ def _pick_(ini, catf, offset_file, base_img_id, base_cat_file, out_pick_txt, lf)
                       )[0]
 
     # pick reference stars, by a error limit or a number limit or both
-    ix_ref = np.where((magstd < pick_ref_std) & (magdif < pick_ref_dif))[0]
+    ix_ref = np.where((magstd < pick_ref_std) & (magdif < pick_ref_dif) & (magstd < 0.1))[0]
     ix_ref = ix_ref[np.argsort(magstd[ix_ref])][:pick_ref_n]
 
     lf.show("Pick {:3d} ref stars and {:3d} var stars".format(
