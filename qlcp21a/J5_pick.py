@@ -103,7 +103,7 @@ def _pick_(ini, catf, offset_file, base_img_id, base_cat_file, out_pick_txt, lf)
                       )[0]
 
     # pick reference stars, by a error limit or a number limit or both
-    ix_ref = np.where((magstd < pick_ref_std) & (magdif < pick_ref_dif) & (magstd < 0.1))[0]
+    ix_ref = np.where((magstd < pick_ref_std) & (magdif < pick_ref_dif) & (magbad < 0.1))[0]
     ix_ref = ix_ref[np.argsort(magstd[ix_ref])][:pick_ref_n]
 
     lf.show("Pick {:3d} ref stars and {:3d} var stars".format(
