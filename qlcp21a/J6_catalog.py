@@ -37,6 +37,12 @@ def _catalog_(ini, scif, catf, offset_file, starxy,
     lf.show("{:03d} files".format(nf), logfile.DEBUG)
     # star x, y, and number
     ns = len(starxy)
+    # 2021-11-19 if no star picked, skip this step
+    if ns == 0:
+        lf.show("No stars given, no catalog out!!", logfile.ERROR)
+        return
+
+    # confirm starxy is 2d np array, and split x, y
     if type(starxy) is not np.ndarray:
         starxy = np.array(starxy)
     starx = starxy[:, 0]

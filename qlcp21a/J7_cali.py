@@ -33,6 +33,12 @@ def _cali_(ini, cat_fits, tgt_id, ref_id, chk_id, out_cali_fits, out_cali_txt, l
     cat = fits.getdata(cat_fits, 1)
     mags = cat["Mag"]
     errs = cat["Err"]
+
+    # 2021-11-19 if no stars or only one star, skip
+    if mags.ndim == 1:
+        lf.show("Only 1 star, no calibration!!", logfile.ERROR)
+        return
+
     nf, n_obj = mags.shape
     mags[mags < 0] = np.nan
 
