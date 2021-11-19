@@ -223,7 +223,7 @@ def do_all(ini_file, raw_dir, lst_dir, red_dir,
                 extra_config=extra_config,
             )
             if not starxy:
-                pick_starxy = [xy_var[:1]] + xy_ref
+                pick_starxy = xy_var[:1] + xy_ref
             else:
                 pick_starxy = list(starxy) + xy_ref
         else:
