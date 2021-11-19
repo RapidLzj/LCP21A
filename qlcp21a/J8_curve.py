@@ -39,9 +39,14 @@ def _curve_(ini_file, cali_fits, fig_set, noplot, out_lc_png, lf):
 
     # load catalog and get n_files and n_object
     cat = fits.getdata(cali_fits, 1)
-    n_chk = len(cat[0]["Magchk"])
     tgt_mag_cali = cat["CaliTgt"]
-    chk_mag_cali = cat["CaliChk"]
+    # 20211119 add something to handle only one checker
+    if type(cat[0]["Magchk"]) is np.float32:
+        n_chk = 1
+        chk_mag_cali = cat["CaliChk"].reshape((len(cat), 1))
+    else:
+        n_chk = len(cat[0]["Magchk"])
+        chk_mag_cali = cat["CaliChk"]
 
     if cat[0]["BJD"] == 0:
         bjd = cat["JD"] - fig_set["bjd_0"]
@@ -62,7 +67,7 @@ def _curve_(ini_file, cali_fits, fig_set, noplot, out_lc_png, lf):
     b = 0.0  # base y of each curve
     ax.plot(bjd, tgt_mag_cali + b, marker_tgt,
             label="Target")
-            # label="Target (#{})".format(tgt_id))
+    # label="Target (#{})".format(tgt_id))
 
     if type(marker_chk) is str:
         marker_chk = (marker_chk, )

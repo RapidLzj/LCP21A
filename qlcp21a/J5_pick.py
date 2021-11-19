@@ -96,6 +96,12 @@ def _pick_(ini, catf, offset_file, base_img_id, base_cat_file, out_pick_txt, lf)
     magdif = np.nanmax(magc, axis=0) - np.nanmin(magc, axis=0)  # diff between min and max of each star
     magbad = np.sum(np.isnan(magc), axis=0) / nf  # percent of bad (nan) of each star
 
+    for k in range(ng):
+        print(f"{k:3d}", end="   ")
+        for f in magc[:, k]:
+            print(f"{f:7.3f}", end=" ")
+        print(f"  {magstd[k]:7.3f}  {magdif[k]:7.3f}  {magbad[k]:7.3f}")
+
     # pick variable stars, by mag std, and distance to center
     ix_var = np.where((magstd > pick_var_std) & (magdif > pick_var_dif)
                       & (np.abs(x_b - nx / 2) < nx * pick_var_rad)
